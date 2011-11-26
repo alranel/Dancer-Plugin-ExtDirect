@@ -107,6 +107,8 @@ register extdirect => sub ($) {
 
 register_plugin;
 
+1;
+
 =head1 SYNOPSIS
 
     use Dancer::Plugin::ExtDirect;
@@ -207,4 +209,4 @@ Server Error with no details exposed.
 
 =back
 
-1;
+=cut
