@@ -1,8 +1,9 @@
 package Dancer::Plugin::ExtDirect;
+# ABSTRACT: ExtDirect plugin for Dancer
 use strict;
 use warnings;
 
-our $VERSION = '0.10';
+our $VERSION = '1.00';
 
 use Dancer ':syntax';
 use Dancer::Plugin;
@@ -105,5 +106,105 @@ register extdirect => sub ($) {
 };
 
 register_plugin;
+
+=head1 SYNOPSIS
+
+    use Dancer::Plugin::ExtDirect;
+    
+    # basic example:
+    extdirect {
+        api         => '/api',
+        actions     => {
+            'Calculator' => {
+                sum => { len => 2, handler => \&sum },
+            },
+        },
+    };
+    sub sum {
+        my ($a, $b) = @_;
+        return $a + $b;
+    }
+    
+    # a bit more complex example:
+    any qr{ /projects/.* }x => sub {
+        # chain route handlers to check permissions
+        # for ExtDirect calls too
+        pass;
+    };
+    extdirect {
+        api         => '/projects/*/api',  # the wildcard values are passed to handlers
+        namespace   => 'MyApp',
+        actions     => {
+            'Project' => {
+                addUser => { len => 1, handler => \&addUser },
+            },
+        },
+    };
+    sub addUser {
+        my ($project_id, $user) = @_;
+        ...
+    }
+    
+    # in HTML:
+    <script type="text/javascript" src="/api"></script>
+    <script type="text/javascript" src="/projects/2/api"></script>
+    <script type="text/javascript">
+        alert("3 + 2 = " + Calculator.sum(3,2));
+        MyApp.Project.addUser({ name => 'Harry' });
+    </script>
+
+=method extdirect
+
+This method sets up a Dancer route handler to expose some functions to
+your JavaScript client-side application. It accepts a hashref containing 
+the following options.
+
+=over 4
+
+=item B<api>
+
+This accepts a route handler URI path, such as C</api>. You can also use Dancer 
+wildcards such as C</projects/*/api>, so that the values caught are passed to 
+your method handlers.
+
+=item B<actions>
+
+This accepts a hashref whose keys are ExtDirect class names and their values are
+hashrefs with the method definitions (see the synopsis above for an example).
+Each method is defined by a hashref having the following keys:
+
+=over 8
+
+=item I<len>
+
+The number of arguments that the exported function accepts.
+
+=item I<handler>
+
+A coderef (or reference to a subroutine) that will handle the request. Note
+that this module doesn't force you to map the exposed ExtDirect class to 
+any particular Perl class layout.
+The handler subroutine will be called with the arguments coming from the 
+client-side. If you used any wildcards in the C<api> path, the values caught
+(with Dancer's C<splat> method) will be prepended to the arguments.
+
+=item I<formHandler>
+
+Optional. Mark this as true to handle ExtJs form (see ExtJs docs about the
+formHandler API).
+
+=back
+
+=item B<namespace>
+
+Optional. The JavaScript namespace under which the API will be exported.
+
+=item B<debug>
+
+Optional. Mark this as true to send ExtDirect exceptions when the handler 
+dies. Default is false, meaning that Dancer will just throw a 500 Internal
+Server Error with no details exposed.
+
+=back
 
 1;
