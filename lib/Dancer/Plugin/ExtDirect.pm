@@ -40,6 +40,7 @@ register extdirect => sub ($) {
                 type      => 'remoting',
                 actions   => $actions,
                 $init->{namespace} ? (namespace => $init->{namespace}) : (),
+                $init->{provider_config} ? %{$init->{provider_config}} : (),
             };
     };
     
@@ -166,6 +167,15 @@ the following options.
 This accepts a route handler URI path, such as C</api>. You can also use Dancer 
 wildcards such as C</projects/*/api>, so that the values caught are passed to 
 your method handlers.
+
+=item B<namespace>
+
+This option is injected to the addProvider method call.
+
+=item B<provider_config>
+
+This accepts a hashref with additional config options that will be injected to
+the addProvider method call.
 
 =item B<actions>
 
