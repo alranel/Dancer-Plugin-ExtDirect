@@ -32,16 +32,19 @@ register extdirect => sub ($) {
                 };
             }
         }
-        
         content_type 'text/javascript';
-        sprintf "Ext.Direct.addProvider(%s);\n",
-            to_json {
-                url       => request->path . '/router',
-                type      => 'remoting',
-                actions   => $actions,
-                $init->{namespace} ? (namespace => $init->{namespace}) : (),
-                $init->{provider_config} ? %{$init->{provider_config}} : (),
-            };
+        my $api_string = to_json {
+            url       => request->path . '/router',
+            type      => 'remoting',
+            actions   => $actions,
+            $init->{namespace} ? (namespace => $init->{namespace}) : (),
+            $init->{provider_config} ? %{$init->{provider_config}} : (),
+        };
+        if (defined($init->{variable})) {
+            sprintf "%s = %s;\n", $init->{variable}, $api_string;
+        } else {
+            sprintf "Ext.Direct.addProvider(%s);\n", $api_string;
+        }
     };
     
     post $init->{api} . '/router' => sub {
